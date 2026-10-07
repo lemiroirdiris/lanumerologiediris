@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Le Miroir d'Iris - Numérologie</title>
+<meta name="description" content="Numérologie pythagoricienne : chemin de vie, expression, élan spirituel, réalisation. Aucune donnée n'est envoyée ni enregistrée à ton insu.">
+<style>
+:root{--or:#d9b97a;--vio:#b79cf0;--txt:#e9e4f3;--mut:#9d96ad}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:#000;color:var(--txt);font-family:Georgia,'Times New Roman',serif;line-height:1.6;position:relative}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:#000 url("iris_miroir_d_iris.png") left center/contain no-repeat}
+main{max-width:640px;margin:0 auto 0 auto;padding:2rem 1.2rem 3rem}
+@media(min-width:900px){main{margin-left:46%;margin-right:3%;max-width:700px}}
+@media(max-width:899px){body::before{opacity:.35;background-position:left top}}
+h1{font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--or);text-align:center;font-size:clamp(1.4rem,4vw,2.1rem);margin:1rem 0 .2rem;text-shadow:0 0 18px rgba(217,185,122,.35)}
+.sub{text-align:center;color:var(--vio);letter-spacing:.3em;font-size:.85rem;margin-bottom:1.6rem}
+form{background:rgba(10,8,18,.78);border:1px solid rgba(183,156,240,.3);border-radius:14px;padding:1.3rem;backdrop-filter:blur(4px)}
+label{display:block;font-size:.9rem;color:var(--mut);margin:.7rem 0 .2rem}
+input[type=text],input[type=date],select{width:100%;padding:.65rem .8rem;border-radius:8px;border:1px solid rgba(183,156,240,.35);background:#0b0912;color:var(--txt);font:inherit;color-scheme:dark}
+input:focus{outline:2px solid var(--vio)}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:.8rem}
+@media(max-width:520px){.row{grid-template-columns:1fr}}
+.check{display:flex;gap:.6rem;align-items:flex-start;margin-top:1rem;font-size:.85rem;color:var(--mut)}
+.check input{margin-top:.3rem}
+button{cursor:pointer;font:inherit;border-radius:999px;padding:.7rem 1.4rem;border:1px solid var(--or);background:linear-gradient(135deg,#3b2a6b,#1d1238);color:var(--or);letter-spacing:.08em;margin-top:1.1rem}
+button:hover{background:linear-gradient(135deg,#4d3790,#2a1a52)}
+button.ghost{background:none;border-color:rgba(183,156,240,.4);color:var(--mut);margin-left:.5rem;font-size:.85rem}
+.priv{font-size:.78rem;color:var(--mut);margin-top:1rem;text-align:center}
+#err{color:#ff9db0;margin-top:.8rem;min-height:1.2em;font-size:.9rem}
+#res{margin-top:1.5rem}
+.card{background:rgba(10,8,18,.82);border:1px solid rgba(217,185,122,.28);border-radius:14px;padding:1.1rem 1.2rem;margin-bottom:1rem;animation:in .6s ease both}
+@keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1}}
+.card h2{margin:0;font-weight:400;font-size:1rem;color:var(--vio);letter-spacing:.06em}
+.card small{color:var(--mut)}
+.num{float:right;font-size:2.6rem;line-height:1;color:var(--or);margin-left:1rem;text-shadow:0 0 14px rgba(217,185,122,.4)}
+.card h3{margin:.3rem 0;color:var(--or);font-weight:400;font-size:1.05rem;clear:none}
+.card p{margin:.3rem 0 0;font-size:.95rem}
+.intro{text-align:center;color:var(--mut);font-style:italic;margin-bottom:1rem}
+.lr{display:flex;gap:.9rem;align-items:center;border-top:1px solid rgba(183,156,240,.2);padding:.6rem 0;font-size:.92rem}.lr b{font-size:1.8rem;color:var(--or);min-width:2rem;text-align:center;font-weight:400}.lr strong{color:var(--vio);font-weight:400}.lr em{color:var(--mut)}
+footer{margin-top:2rem;text-align:center;color:var(--mut);font-size:.75rem}
+</style>
+</head>
+<body>
+<main>
+<h1>Le Miroir d'Iris</h1>
+<div class="sub">NUMÉROLOGIE</div>
+
+<form id="f" autocomplete="off">
+  <div class="row">
+    <div><label for="pre">Prénom(s)</label><input type="text" id="pre" required maxlength="60" placeholder="ex : Marie Claire"></div>
+    <div><label for="nom">Nom de naissance</label><input type="text" id="nom" required maxlength="60" placeholder="ex : Dupont"></div>
+  </div>
+  <label for="dn">Date de naissance</label>
+  <input type="date" id="dn" required min="1900-01-01">
+  <label for="gen">Je m'adresse à toi… Choisis ton profil</label>
+  <select id="gen" required><option value="" disabled selected>Choisir…</option><option value="f">Femme</option><option value="m">Homme</option></select>
+  <label class="check"><input type="checkbox" id="keep"><span>Conserver mon profil <b>sur cet appareil uniquement</b> pour le retrouver ma prochaine visite (facultatif).</span></label>
+  <button type="submit">Interroger le miroir</button><button type="button" class="ghost" id="clr">Tout effacer</button>
+  <div id="err" role="alert"></div>
+  <p class="priv">🔒 Tes informations restent dans ton navigateur. Rien n'est envoyé, rien n'est enregistré sans ton accord explicite.</p>
+</form>
+
+<section id="res" aria-live="polite"></section>
+<footer>La numérologie est un outil de réflexion et de divertissement, non une science.</footer>
+</main>
+
+<script>
+const KEY='miroir_iris_profil';
+const $=id=>document.getElementById(id);
+const MASTER=[11,22,33];
+
+// Table pythagoricienne : A=1 ... I=9, J=1 ... R=9, S=1 ... Z=8
+const val=c=>((c.charCodeAt(0)-65)%9)+1;
+const clean=s=>s.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[Œœ]/g,'OE').replace(/[Ææ]/g,'AE').toUpperCase().replace(/[^A-Z]/g,'');
+const digits=n=>String(n).split('').reduce((a,b)=>a+ +b,0);
+function reduce(n,master=true){while(n>9&&!(master&&MASTER.includes(n)))n=digits(n);return n}
+function sumLetters(s,filter){let t=0;for(const c of s)if(!filter||filter(c))t+=val(c);return t}
+const VOY='AEIOUY';
+
+const T={
+1:{t:"{L'Initiateur|L'Initiatrice|Initiateur.trice}",e:"Une énergie de commencement : tu es là pour ouvrir la voie et affirmer ta singularité.",q:"{indépendant|indépendante}, {courageux|courageuse}, {déterminé|déterminée}, {doté|dotée} d'un vrai sens de l'initiative",a:"tu aimes conquérir et être {admiré|admirée}, mais dois apprendre à partager le premier rôle",w:"tu brilles comme entrepreneur, chef de projet ou créateur ; l'autonomie t'est vitale",d:"l'impatience, l'orgueil et la tendance à décider {seul|seule}",c:"ose lancer tes projets tout en écoutant l'avis des autres."},
+2:{t:"{Le Médiateur|La Médiatrice|Médiateur.trice}",e:"Une énergie d'union : tu es là pour relier, apaiser et faire fleurir la coopération.",q:"sensible, diplomate, {attentif|attentive}, {patient|patiente}, {intuitif|intuitive}",a:"tu recherches la fusion et la tendresse, au risque de t'effacer pour l'autre",w:"tu excelles dans le travail d'équipe, le conseil, le soin et la médiation",d:"l'hypersensibilité, l'indécision et la peur du conflit",c:"pose tes limites avec douceur et crois en ta valeur propre."},
+3:{t:"{Le Créatif|La Créative|Créatif.ve}",e:"Une énergie d'expression : tu es là pour communiquer, créer et répandre la joie.",q:"{créatif|créative}, {joyeux|joyeuse}, {communicatif|communicative}, optimiste, charismatique",a:"tu séduis par le charme et l'humour, mais fuis parfois les conversations profondes",w:"écriture, scène, enseignement, communication ou arts te conviennent",d:"la dispersion, la superficialité et les doutes cachés derrière la bonne humeur",c:"choisis un projet créatif et mène-le jusqu'au bout."},
+4:{t:"{Le Bâtisseur|La Bâtisseuse|Bâtisseur.se}",e:"Une énergie de construction : tu es là pour bâtir du solide et du durable.",q:"fiable, méthodique, {loyal|loyale}, {persévérant|persévérante}, réaliste",a:"tu aimes l'engagement et la stabilité, mais exprimes tes sentiments avec retenue",w:"gestion, artisanat, ingénierie, organisation : ton sérieux inspire confiance",d:"la rigidité, l'entêtement et la peur de l'imprévu",c:"autorise-toi des pauses, du jeu et un peu d'improvisation."},
+5:{t:"{L'Aventurier|L'Aventurière|Aventurier.ère}",e:"Une énergie de mouvement : tu es là pour explorer, expérimenter et te renouveler.",q:"{curieux|curieuse}, adaptable, {charmant|charmante}, {audacieux|audacieuse}, {polyvalent|polyvalente}",a:"tu as besoin d'espace et d'enthousiasme, et crains la routine à deux",w:"voyage, vente, médias, métiers variés : tu t'épanouis dans le changement",d:"l'instabilité, les excès et la peur de t'engager",c:"canalise ta liberté vers un but qui te passionne."},
+6:{t:"{Le Protecteur|La Protectrice|Protecteur.trice}",e:"Une énergie d'harmonie : tu es là pour aimer, protéger et embellir le monde autour de toi.",q:"{aimant|aimante}, responsable, esthète, {conciliant|conciliante}, {dévoué|dévouée}",a:"tu te donnes entièrement à ceux que tu aimes, parfois jusqu'à vouloir tout contrôler",w:"soin, éducation, art, décoration, accompagnement : tu crées du bien-être",d:"le perfectionnisme, l'excès de responsabilités et l'envie de tout arranger",c:"accepte que chacun suive sa route et accorde-toi autant de soin qu'aux autres."},
+7:{t:"{Le Chercheur|La Chercheuse|Chercheur.se}",e:"Une énergie de profondeur : tu es là pour comprendre, chercher la vérité et cultiver la sagesse.",q:"analytique, {intuitif|intuitive}, {discret|discrète}, {cultivé|cultivée}, {spirituel|spirituelle}",a:"tu aimes les liens authentiques, mais tu te protèges derrière le silence",w:"recherche, science, écriture, thérapie ou spiritualité : tu approfondis tout ce que tu touches",d:"l'isolement, le doute et une méfiance qui coupe des autres",c:"partage tes découvertes et fais confiance à ton intuition."},
+8:{t:"{Le Stratège|La Stratège|Stratège}",e:"Une énergie de puissance : tu es là pour concrétiser, organiser et atteindre la réussite.",q:"{ambitieux|ambitieuse}, lucide, {travailleur|travailleuse}, charismatique, {doué|douée} pour les affaires",a:"tu aimes et protèges avec force, mais le travail peut prendre toute la place",w:"direction, finance, entreprise, droit : tu sais bâtir et manager",d:"la domination, le matérialisme et les hauts et bas de fortune",c:"utilise ton pouvoir avec justice et équilibre succès et vie intérieure."},
+9:{t:"{Le Sage|La Sage|Sage}",e:"Une énergie d'accomplissement : tu es là pour donner, pardonner et élever les consciences.",q:"{généreux|généreuse}, idéaliste, {compatissant|compatissante}, artiste, {tolérant|tolérante}",a:"tu aimes largement, parfois de façon idéalisée, et as du mal à tourner la page",w:"humanitaire, art, médecine, enseignement : tes actions servent un idéal",d:"la déception, la dispersion et l'attachement au passé",c:"aide sans t'oublier et accueille les fins comme des renaissances."},
+11:{t:"{L'Illuminé|L'Illuminée|Illuminé.e} (nombre maître)",e:"Une énergie d'éveil : tu es là pour inspirer par ton intuition et ta sensibilité hors norme.",q:"visionnaire, {inspiré|inspirée}, charismatique, très empathique, {réceptif|réceptive} à l'invisible",a:"tes relations sont intenses et exigeantes ; tu cherches une âme sœur autant qu'un partenaire",w:"art, spiritualité, thérapie, enseignement : tu éclaires ceux qui t'écoutent",d:"la nervosité, l'anxiété et l'écart entre tes idéaux et le quotidien",c:"ancre-toi par le corps, la nature et des routines apaisantes."},
+22:{t:"{Le Grand Bâtisseur|La Grande Bâtisseuse|Grand.e Bâtisseur.se} (nombre maître)",e:"Une énergie de réalisation : tu es là pour transformer un grand idéal en œuvre concrète.",q:"visionnaire, pragmatique, {rassembleur|rassembleuse}, exceptionnellement {organisé|organisée}",a:"tu as besoin d'un partenaire qui comprend ta mission et te soutient",w:"grands projets, architecture, entreprise, institutions : tu vois grand et construis durablement",d:"la pression, la peur de l'échec et la tentation de tout porter {seul|seule}",c:"avance pas à pas, délègue et entoure-toi de personnes de confiance."},
+33:{t:"{Le Maître Guérisseur|La Maîtresse Guérisseuse|Maître.sse Guérisseur.se} (nombre maître)",e:"Une énergie de don : tu es là pour soigner, guider et enseigner par l'amour et l'exemple.",q:"{bienveillant|bienveillante}, {inspirant|inspirante}, {protecteur|protectrice}, {créatif|créative}, profondément {humain|humaine}",a:"tu aimes sans condition, au risque de t'épuiser pour les autres",w:"soin, enseignement, art, accompagnement : ta seule présence apaise",d:"le sacrifice de soi et le poids des attentes d'autrui",c:"reçois autant que tu donnes et préserve ton énergie."}
+};
+const Y={
+1:"Une page blanche s'ouvre : c'est le moment de lancer tes projets, de décider et d'affirmer tes désirs. Ce que tu plantes maintenant portera ses fruits pendant les neuf années à venir.",
+2:"L'année invite à la patience : les projets mûrissent en coulisses. Rencontres, collaborations et écoute sont tes meilleurs outils.",
+3:"La vie devient plus légère et plus sociale : créativité, rencontres, communication et plaisirs sont favorisés. Exprime-toi sans te disperser.",
+4:"Année de travail et de fondations : organise ton budget, ta santé, ton habitat. L'effort régulier d'aujourd'hui sécurise demain.",
+5:"Les changements arrivent : déménagement, voyage, rencontre, nouveau cap. Garde l'esprit ouvert et évite les décisions impulsives.",
+6:"Le cœur, la famille et la maison passent au premier plan. Engagements, réconciliations ou naissances sont possibles ; veille à ton équilibre.",
+7:"Année de recul et d'introspection : étudie, repose-toi, écoute ton intuition. Ce calme prépare une renaissance.",
+8:"Année de récolte et de pouvoir personnel : carrière, argent et ambitions avancent si tu agis avec rigueur et honnêteté.",
+9:"Un cycle de neuf ans s'achève : on fait le tri, on pardonne, on quitte ce qui est fini. Le renouveau approche."
+};
+const J={1:"initiative et nouveaux départs",2:"écoute, patience et coopération",3:"expression, créativité et contacts",4:"organisation, effort et fondations",5:"mouvement, imprévus et liberté",6:"foyer, affection et responsabilités",7:"réflexion, repos et intuition",8:"action concrète, argent et décisions",9:"bilan, générosité et lâcher-prise"};
+const K={1:"Lance ce que tu repousses.",2:"Privilégie la douceur et l'écoute.",3:"Dis ce que tu ressens, crée.",4:"Avance méthodiquement sur une tâche.",5:"Reste souple face aux surprises.",6:"Prends soin de tes proches... et de toi.",7:"Ménage un moment de silence.",8:"Prends une décision avec lucidité.",9:"Termine, range, pardonne."};
+
+const incl=(m,f)=>{let k=0;while(k<m.length&&k<f.length&&m[k]===f[k])k++;return m+'.'+f.slice(k)};
+const G=s=>{const g=$('gen').value;return s.replace(/\{([^{}|]+)\|([^{}|]+)(?:\|([^{}|]+))?\}/g,(_,m,f,i)=>g==='m'?m:g==='f'?f:(i||incl(m,f)))};
+const card=(titre,sous,n,ps)=>`<div class="card"><span class="num">${n}</span><h2>${titre}</h2><small>${sous}</small><h3>${T[n]?T[n].t:''}</h3>${ps.filter(Boolean).map(x=>`<p>${x}</p>`).join('')}</div>`;
+
+function compute(pre,nom,dn){
+  const [y,m,d]=dn.split('-').map(Number);
+  const full=clean(pre+nom);
+  const now=new Date(),cd=now.getDate(),cm=now.getMonth()+1,cy=now.getFullYear();
+  const chemin=reduce(reduce(d)+reduce(m)+reduce(y));
+  const expr=reduce(sumLetters(full));
+  const annee=reduce(digits(d)+digits(m)+digits(cy),false);
+  const mois=reduce(annee+cm,false);
+  return {chemin,expr,
+    intime:reduce(sumLetters(full,c=>VOY.includes(c))),
+    real:reduce(sumLetters(full,c=>!VOY.includes(c))),
+    jour:reduce(d),annee,mois,
+    pjour:reduce(mois+cd,false),
+    univ:reduce(digits(cd)+digits(cm)+digits(cy),false),
+    harmonie:reduce(chemin+expr,false),
+    now,cy};
+}
+
+function show(pre,nom,dn){
+  const r=compute(pre,nom,dn),t=n=>T[n];
+  const P=pre.trim().split(/\s+/)[0],Pn=P.charAt(0).toUpperCase()+P.slice(1).toLowerCase();
+  const [c,e]=[r.chemin,r.expr],dif=Math.abs(reduce(c,false)-reduce(e,false));
+  const harm=c===e
+    ?"Ton chemin de vie et ton expression vibrent à l'unisson : ce que tu fais naturellement va dans le sens de ta mission. Ton énergie est cohérente et fluide."
+    :dif<=2
+    ?`Ton chemin de vie (${t(c).t}) et ton expression (${t(e).t}) sont voisins et complémentaires : tes talents soutiennent ta mission, avec de légers ajustements à faire.`
+    :`Ton chemin de vie (${t(c).t}) et ton expression (${t(e).t}) sont contrastés. Cette tension est créatrice : elle te pousse à intégrer deux facettes de toi-même pour grandir.`;
+  const dateTxt=r.now.toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const L=(lab,n)=>`<div class="lr"><b>${n}</b><div><strong>${lab}</strong><br>${J[n]}. <em>${K[n]}</em></div></div>`;
+  $('res').innerHTML=G(
+   `<p class="intro">Le miroir s'éclaire pour ${Pn}…</p>`+
+   card('Chemin de vie','Ta mission, issue de la date de naissance',c,[
+     "Le chemin de vie est le fil conducteur de ton existence : les leçons à apprendre et la direction vers laquelle la vie te porte.",
+     t(c).e+" Qualités : "+t(c).q+".","En amour — "+t(c).a+".","Au travail — "+t(c).w+".","Ton défi : "+t(c).d+".","Conseil : "+t(c).c])+
+   card("Nombre d'expression",'Tes talents, issus de toutes les lettres de ton nom',e,[
+     "Calculé à partir de toutes les lettres de ton nom et prénoms, il décrit tes aptitudes naturelles et la manière dont tu agis dans le monde.",
+     "Tes talents : "+t(e).q+".","Dans la vie professionnelle — "+t(e).w+".","Ton défi : "+t(e).d+"."])+
+   card('Élan spirituel','Tes désirs profonds, issus des voyelles',r.intime,[
+     "Les voyelles de ton nom dévoilent ton moteur secret : ce que tu désires vraiment, au-delà des apparences.",
+     t(r.intime).e,"Dans tes relations — "+t(r.intime).a+".","Conseil : "+t(r.intime).c])+
+   card('Nombre de réalisation',"L'image que tu donnes, issue des consonnes",r.real,[
+     "Les consonnes forment la façade : la manière dont tu es {perçu|perçue} et l'énergie que tu déploies pour atteindre tes buts.",
+     "Les autres te perçoivent ainsi : "+t(r.real).q+".","Dans l'action — "+t(r.real).w+".","À surveiller : "+t(r.real).d+"."])+
+   card('Jour de naissance','Un talent naturel offert à la naissance',r.jour,[
+     "Le jour où tu es {né|née} colore ton caractère de façon discrète mais constante : c'est un cadeau de départ.",
+     "Don naturel : "+t(r.jour).q+".","Conseil : "+t(r.jour).c])+
+   card(`Année personnelle ${r.cy}`,'Le climat de ton année en cours',r.annee,[Y[r.annee],"Dans ce cadre, rappelle-toi : "+t(r.annee).c])+
+   card('Harmonie intérieure','Accord entre ton chemin de vie et ton expression',r.harmonie,[harm,c===e?"Pour cultiver cet accord : "+t(c).c:"Pour les réunir — chemin de vie : "+t(c).c+" Expression : "+t(e).c])+
+   `<div class="card"><h2>Lecture du jour</h2><small>${dateTxt}</small>`+
+   L("Énergie universelle du jour",r.univ)+L(`Ton année personnelle ${r.cy}`,r.annee)+
+   L("Ton mois personnel",r.mois)+L("Ton jour personnel",r.pjour)+
+   `<p>Ces trois cycles se superposent : l'année donne la toile de fond, le mois l'ambiance, et le jour la couleur de tes heures.</p></div>`);
+  $('res').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+$('f').addEventListener('submit',e=>{
+  e.preventDefault();$('err').textContent='';
+  const pre=$('pre').value,nom=$('nom').value,dn=$('dn').value;
+  if(clean(pre+nom).length<2){$('err').textContent="Merci de saisir ton prénom et ton nom (lettres uniquement).";return}
+  const dt=new Date(dn+'T00:00:00');
+  if(!dn||isNaN(dt)||dt>new Date()||dt.getFullYear()<1900){$('err').textContent="Date de naissance invalide.";return}
+  // Stockage local UNIQUEMENT si la case est cochée
+  try{
+    if($('keep').checked)localStorage.setItem(KEY,JSON.stringify({pre,nom,dn,g:$('gen').value}));
+    else localStorage.removeItem(KEY);
+  }catch(_){}
+  show(pre,nom,dn);
+});
+
+$('clr').addEventListener('click',()=>{
+  try{localStorage.removeItem(KEY)}catch(_){}
+  $('f').reset();$('res').innerHTML='';$('err').textContent='Toutes les données ont été effacées.';
+});
+
+// Restauration seulement si l'utilisateur l'avait demandé auparavant
+try{
+  const s=JSON.parse(localStorage.getItem(KEY)||'null');
+  if(s){$('pre').value=s.pre;$('nom').value=s.nom;$('dn').value=s.dn;$('gen').value=s.g||'';$('keep').checked=true}
+}catch(_){}
+</script>
+</body>
+</html>
